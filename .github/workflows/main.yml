@@ -1,0 +1,28 @@
+name: Lint and test
+
+on:
+  # Run on any branch changes
+  push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Python
+        uses: actions/setup-python@v2.3.2
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      - name: Lint with Black
+        run: |
+          black . --check -l 120
+      - name: Test with unittest
+        run: |
+          pytest test
+      - name: Check types with mypy
+        run: |
+          mypy . --ignore-missing-imports
