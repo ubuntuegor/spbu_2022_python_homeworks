@@ -15,3 +15,21 @@ def curry_explicit(f: Callable, n: int) -> Callable:
         return lambda x: closure(n - 1, args + (x,))
 
     return closure(n, ())
+
+
+def uncurry_explicit(f: Callable, n: int) -> Callable:
+    "Uncurries the function f with n positional arguments"
+
+    if n < 0:
+        raise ValueError("Function cannot have a negative number of arguments")
+
+    def uncurry(*args) -> Callable:
+        if len(args) != n:
+            raise ValueError(f"Uncurrying {n} arguments but {len(args)} were passed")
+
+        result = f if n > 0 else f()
+        for arg in args:
+            result = result(arg)
+        return result
+
+    return uncurry

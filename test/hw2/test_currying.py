@@ -1,5 +1,5 @@
 import pytest
-from src.hw2.currying import curry_explicit
+from src.hw2.currying import curry_explicit, uncurry_explicit
 
 
 def test_curry_explicit():
@@ -19,10 +19,31 @@ def test_curry_explicit():
 def test_curry_explicit_freeze():
     fun = curry_explicit(lambda *args: "<{}>".format(", ".join(args)), 2)
     assert fun("ab")("cd") == "<ab, cd>"
-    with pytest.raises(TypeError, match=".*is not callable"):
+    with pytest.raises(TypeError, match=".* is not callable"):
         fun("ab")("cd")("de")
 
 
 def test_curry_explicit_fool():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match=".* negative number of arguments"):
         curry_explicit(lambda x: x, -1)
+
+
+def test_uncurry_explicit():
+    src = curry_explicit(lambda x, y, z: f"<{x},{y},{z}>", 3)
+    fun = uncurry_explicit(src, 3)
+    assert fun(123, 456, 789) == "<123,456,789>"
+
+    src = curry_explicit(lambda: "value", 0)
+    fun = uncurry_explicit(src, 0)
+    assert fun() == "value"
+
+
+def test_uncurry_explicit_fool():
+    src = curry_explicit(lambda x, y, z: f"<{x},{y},{z}>", 3)
+    with pytest.raises(ValueError, match=".* negative number of arguments"):
+        uncurry_explicit(src, -1)
+
+    fun = uncurry_explicit(src, 3)
+
+    with pytest.raises(ValueError, match="Uncurrying 3 arguments but 2 were passed"):
+        fun(1, 2)
