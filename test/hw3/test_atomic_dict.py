@@ -9,11 +9,12 @@ def test_atomic_dict():
         with ad.acquire() as d:
             d["other_data"] = 69
 
+    t = Thread(target=modify_atomic_dict, args=(ad,))
+    t.start()
+
     with ad.acquire() as d:
         d["some_data"] = 42
 
-    t = Thread(target=modify_atomic_dict, args=(ad,))
-    t.start()
     t.join()
 
     with ad.acquire() as d:

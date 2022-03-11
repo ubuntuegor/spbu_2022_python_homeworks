@@ -3,12 +3,15 @@ from threading import Lock
 
 
 class AtomicDict:
+    "A dictionary which can be safely accessed from different threads"
+
     def __init__(self):
-        self.__data__ = {}
-        self.__lock__ = Lock()
+        self._data = {}
+        self._lock = Lock()
 
     @contextmanager
     def acquire(self):
-        self.__lock__.acquire()
-        yield self.__data__
-        self.__lock__.release()
+        "Context manager that sets the lock and provides the dictionary"
+        self._lock.acquire()
+        yield self._data
+        self._lock.release()
