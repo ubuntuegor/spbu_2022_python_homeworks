@@ -2,7 +2,8 @@ from abc import ABCMeta, abstractmethod
 from operator import attrgetter
 from random import randint
 import sys
-from typing import Generic, Optional, Tuple, TypeVar
+from typing import Generic, Mapping, Optional, Tuple, TypeVar
+from collections.abc import MutableMapping
 
 
 class Comparable(metaclass=ABCMeta):
@@ -116,7 +117,7 @@ def _random_int():
     return randint(0, sys.maxsize)
 
 
-class Treap(Generic[K]):
+class Treap(MutableMapping, Generic[K]):
     """
     Stores key-value pairs in a treap with randomized priority.
 
@@ -124,7 +125,7 @@ class Treap(Generic[K]):
     to use integer values as they are the fastest to compare.
     """
 
-    def __init__(self, from_dict: dict | None = None, /):
+    def __init__(self, from_dict: Mapping | None = None, /):
         """Create a treap and fill it with values from the optional `dict` dictionary."""
         self._size: int = 0
         if from_dict is not None:
@@ -138,10 +139,6 @@ class Treap(Generic[K]):
         self._size = 0
         self._tree.clear()
 
-    def get(self, key: K):
-        node = self._tree.find_node(key)
-        return node.value if (node is not None) else None
-
     def __iter__(self):
         for node in self._tree:
             yield node.key
@@ -154,10 +151,6 @@ class Treap(Generic[K]):
 
     def __len__(self):
         return self._size
-
-    def __contains__(self, key: K):
-        node = self._tree.find_node(key)
-        return node is not None
 
     def __getitem__(self, key: K):
         node = self._tree.find_node(key)
