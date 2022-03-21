@@ -19,11 +19,11 @@ class _TreapNode:
         self.right = None
 
     def __iter__(self):
-        if isinstance(self.left, _TreapNode):
+        if self.left is not None:
             for node in self.left:
                 yield node
         yield self
-        if isinstance(self.right, _TreapNode):
+        if self.right is not None:
             for node in self.right:
                 yield node
 
@@ -31,17 +31,17 @@ class _TreapNode:
         if key == self.key:
             return self
         if key > self.key:
-            if isinstance(self.right, _TreapNode):
-                return self.right.find_child(key)
-            return None
+            if self.right is None:
+                return None
+            return self.right.find_child(key)
         else:
-            if isinstance(self.left, _TreapNode):
-                return self.left.find_child(key)
-            return None
+            if self.left is None:
+                return None
+            return self.left.find_child(key)
 
     @staticmethod
     def split(node: "Optional[_TreapNode]", key) -> tuple["Optional[_TreapNode]", "Optional[_TreapNode]"]:
-        if not isinstance(node, _TreapNode):
+        if node is None:
             return (None, None)
         if key > node.key:
             parts = _TreapNode.split(node.right, key)
@@ -56,9 +56,9 @@ class _TreapNode:
 
     @staticmethod
     def merge(a: "Optional[_TreapNode]", b: "Optional[_TreapNode]") -> "Optional[_TreapNode]":
-        if not isinstance(a, _TreapNode):
+        if a is None:
             return b
-        if not isinstance(b, _TreapNode):
+        if b is None:
             return a
 
         if a.priority > b.priority:
@@ -86,29 +86,30 @@ class _TreapTree:
         self._root = queue[0] if len(queue) > 0 else None
 
     def __iter__(self):
-        if isinstance(self._root, _TreapNode):
-            return iter(self._root)
-        return iter(())
+        if self._root is None:
+            return iter(())
+        return iter(self._root)
 
     def clear(self):
         self._root = None
 
     def find_node(self, key) -> Optional[_TreapNode]:
-        if isinstance(self._root, _TreapNode):
-            return self._root.find_child(key)
-        return None
+        if self._root is None:
+            return None
+        return self._root.find_child(key)
 
     def insert(self, node: _TreapNode):
-        if isinstance(self._root, _TreapNode):
+        if self._root is not None:
             parts = _TreapNode.split(self._root, node.key)
             self._root = _TreapNode.merge(_TreapNode.merge(parts[0], node), parts[1])
         else:
             self._root = node
 
     def remove(self, key):
-        if isinstance(self._root, _TreapNode):
-            parts = _TreapNode.split(self._root, key)
-            self._root = _TreapNode.merge(*parts)
+        if self._root is None:
+            return
+        parts = _TreapNode.split(self._root, key)
+        self._root = _TreapNode.merge(*parts)
 
 
 def _random_int():
@@ -129,12 +130,12 @@ class Treap(Generic[K]):
     _size: int
     _tree: _TreapTree
 
-    def __init__(self, src_dict: dict | None = None, /):
+    def __init__(self, from_dict: dict | None = None, /):
         "Create a treap and fill it with values from the optional `dict` dictionary."
         self._size = 0
-        if isinstance(src_dict, dict):
-            self._size = len(src_dict)
-            nodes = (_TreapNode(key, value, _random_int()) for key, value in src_dict.items())
+        if from_dict is not None:
+            self._size = len(from_dict)
+            nodes = (_TreapNode(key, value, _random_int()) for key, value in from_dict.items())
             self._tree = _TreapTree(*nodes)
         else:
             self._tree = _TreapTree()
@@ -145,7 +146,7 @@ class Treap(Generic[K]):
 
     def get(self, key: K):
         node = self._tree.find_node(key)
-        return node.value if isinstance(node, _TreapNode) else None
+        return node.value if (node is not None) else None
 
     def __iter__(self):
         for node in self._tree:
@@ -162,17 +163,17 @@ class Treap(Generic[K]):
 
     def __contains__(self, key: K):
         node = self._tree.find_node(key)
-        return isinstance(node, _TreapNode)
+        return node is not None
 
     def __getitem__(self, key: K):
         node = self._tree.find_node(key)
-        if not isinstance(node, _TreapNode):
+        if node is None:
             raise KeyError(repr(key))
         return node.value
 
     def __setitem__(self, key: K, value):
         node = self._tree.find_node(key)
-        if isinstance(node, _TreapNode):
+        if node is not None:
             node.value = value
         else:
             self._size += 1
@@ -180,7 +181,7 @@ class Treap(Generic[K]):
 
     def __delitem__(self, key: K):
         node = self._tree.find_node(key)
-        if isinstance(node, _TreapNode):
+        if node is not None:
             self._size -= 1
             self._tree.remove(key)
         else:
