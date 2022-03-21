@@ -1,9 +1,16 @@
 from operator import attrgetter
 from random import randint
 import sys
+from typing import Any, Generic, Optional, TypeVar
 
 
 class _TreapNode:
+    key: Any
+    value: Any
+    priority: int
+    left: "Optional[_TreapNode]"
+    right: "Optional[_TreapNode]"
+
     def __init__(self, key, value, priority):
         self.key = key
         self.value = value
@@ -12,29 +19,29 @@ class _TreapNode:
         self.right = None
 
     def __iter__(self):
-        if self.left != None:
+        if isinstance(self.left, _TreapNode):
             for node in self.left:
                 yield node
         yield self
-        if self.right != None:
+        if isinstance(self.right, _TreapNode):
             for node in self.right:
                 yield node
 
-    def find_child(self, key) -> "_TreapNode | None":
+    def find_child(self, key) -> "Optional[_TreapNode]":
         if key == self.key:
             return self
         if key > self.key:
-            if self.right == None:
-                return None
-            return self.right.find_child(key)
+            if isinstance(self.right, _TreapNode):
+                return self.right.find_child(key)
+            return None
         else:
-            if self.left == None:
-                return None
-            return self.left.find_child(key)
+            if isinstance(self.left, _TreapNode):
+                return self.left.find_child(key)
+            return None
 
     @staticmethod
-    def split(node: "_TreapNode | None", key) -> tuple["_TreapNode | None", "_TreapNode | None"]:
-        if node == None:
+    def split(node: "Optional[_TreapNode]", key) -> tuple["Optional[_TreapNode]", "Optional[_TreapNode]"]:
+        if not isinstance(node, _TreapNode):
             return (None, None)
         if key > node.key:
             parts = _TreapNode.split(node.right, key)
@@ -48,10 +55,10 @@ class _TreapNode:
             return (node.left, node.right)
 
     @staticmethod
-    def merge(a: "_TreapNode | None", b: "_TreapNode | None") -> "_TreapNode | None":
-        if a == None:
+    def merge(a: "Optional[_TreapNode]", b: "Optional[_TreapNode]") -> "Optional[_TreapNode]":
+        if not isinstance(a, _TreapNode):
             return b
-        if b == None:
+        if not isinstance(b, _TreapNode):
             return a
 
         if a.priority > b.priority:
@@ -63,8 +70,10 @@ class _TreapNode:
 
 
 class _TreapTree:
+    _root: Optional[_TreapNode]
+
     def __init__(self, *nodes: _TreapNode):
-        queue = sorted(nodes, key=attrgetter("key"))
+        queue: list[_TreapNode | None] = sorted(nodes, key=attrgetter("key"))
 
         while len(queue) > 1:
             new_queue = []
@@ -77,37 +86,39 @@ class _TreapTree:
         self._root = queue[0] if len(queue) > 0 else None
 
     def __iter__(self):
-        if self._root == None:
-            return iter(())
-        return iter(self._root)
+        if isinstance(self._root, _TreapNode):
+            return iter(self._root)
+        return iter(())
 
     def clear(self):
         self._root = None
 
-    def find_node(self, key) -> _TreapNode | None:
-        if self._root == None:
-            return None
-        return self._root.find_child(key)
+    def find_node(self, key) -> Optional[_TreapNode]:
+        if isinstance(self._root, _TreapNode):
+            return self._root.find_child(key)
+        return None
 
     def insert(self, node: _TreapNode):
-        if self._root == None:
+        if isinstance(self._root, _TreapNode):
+            parts = _TreapNode.split(self._root, node.key)
+            self._root = _TreapNode.merge(_TreapNode.merge(parts[0], node), parts[1])
+        else:
             self._root = node
-            return
-        parts = _TreapNode.split(self._root, node.key)
-        self._root = _TreapNode.merge(_TreapNode.merge(parts[0], node), parts[1])
 
     def remove(self, key):
-        if self._root == None:
-            return
-        parts = _TreapNode.split(self._root, key)
-        self._root = _TreapNode.merge(*parts)
+        if isinstance(self._root, _TreapNode):
+            parts = _TreapNode.split(self._root, key)
+            self._root = _TreapNode.merge(*parts)
 
 
 def _random_int():
     return randint(0, sys.maxsize)
 
 
-class Treap:
+K = TypeVar("K")
+
+
+class Treap(Generic[K]):
     """
     Stores key-value pairs in a treap with randomized priority.
 
@@ -115,12 +126,15 @@ class Treap:
     to use integer values as they are the fastest to compare.
     """
 
-    def __init__(self, dict: dict | None = None, /):
+    _size: int
+    _tree: _TreapTree
+
+    def __init__(self, src_dict: dict | None = None, /):
         "Create a treap and fill it with values from the optional `dict` dictionary."
         self._size = 0
-        if dict != None:
-            self._size = len(dict)
-            nodes = (_TreapNode(key, value, _random_int()) for key, value in dict.items())
+        if isinstance(src_dict, dict):
+            self._size = len(src_dict)
+            nodes = (_TreapNode(key, value, _random_int()) for key, value in src_dict.items())
             self._tree = _TreapTree(*nodes)
         else:
             self._tree = _TreapTree()
@@ -129,11 +143,9 @@ class Treap:
         self._size = 0
         self._tree.clear()
 
-    def get(self, key):
+    def get(self, key: K):
         node = self._tree.find_node(key)
-        if node == None:
-            return None
-        return node.value
+        return node.value if isinstance(node, _TreapNode) else None
 
     def __iter__(self):
         for node in self._tree:
@@ -148,27 +160,28 @@ class Treap:
     def __len__(self):
         return self._size
 
-    def __contains__(self, key):
+    def __contains__(self, key: K):
         node = self._tree.find_node(key)
-        return node != None
+        return isinstance(node, _TreapNode)
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: K):
         node = self._tree.find_node(key)
-        if node == None:
+        if not isinstance(node, _TreapNode):
             raise KeyError(repr(key))
         return node.value
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: K, value):
         node = self._tree.find_node(key)
-        if node == None:
+        if isinstance(node, _TreapNode):
+            node.value = value
+        else:
             self._size += 1
             self._tree.insert(_TreapNode(key, value, _random_int()))
-        else:
-            node.value = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: K):
         node = self._tree.find_node(key)
-        if node == None:
+        if isinstance(node, _TreapNode):
+            self._size -= 1
+            self._tree.remove(key)
+        else:
             raise KeyError(repr(key))
-        self._size -= 1
-        self._tree.remove(key)
