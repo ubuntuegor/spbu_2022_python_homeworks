@@ -33,6 +33,10 @@ def test_modifying_treap():
     assert t[420] == "w"
     assert t[69] == "l"
 
+    # Overriding a key
+    t[420] = "new"
+    assert t[420] == "new"
+
     del t[69]
     assert len(t) == 2
     assert list(iter(t)) == [420, 1337]
