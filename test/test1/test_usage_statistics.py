@@ -1,4 +1,6 @@
 import time
+
+import pytest
 from src.test1.usage_statistics import spy, usage_statistics
 
 
@@ -40,5 +42,5 @@ def test_usage_statistics_bar():
 
 
 def test_usage_statistics_fail():
-    # Cannot throw exceptions in a generator :(
-    assert len(list(usage_statistics(fail))) == 0
+    with pytest.raises(TypeError):
+        list(usage_statistics(fail))

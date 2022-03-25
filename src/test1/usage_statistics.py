@@ -29,3 +29,5 @@ def usage_statistics(function: Callable) -> Generator[tuple[float, dict], None, 
     if hasattr(function, "_spy_data"):
         for pair in function._spy_data:  # type: ignore[attr-defined]
             yield pair
+    else:
+        raise TypeError("Function has to be decorated with @spy")
