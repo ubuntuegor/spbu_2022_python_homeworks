@@ -21,11 +21,11 @@ def spy(f: Callable) -> Callable:
         wrapper._spy_data.append((start_time, all_args))
         return f(*args, **kwargs)
 
-    wrapper._spy_data = []
+    wrapper._spy_data = []  # type: ignore[attr-defined]
     return wrapper
 
 
 def usage_statistics(function: Callable) -> Generator[tuple[float, dict], None, None]:
     if hasattr(function, "_spy_data"):
-        for pair in function._spy_data:
+        for pair in function._spy_data:  # type: ignore[attr-defined]
             yield pair
