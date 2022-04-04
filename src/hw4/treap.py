@@ -1,22 +1,26 @@
+from abc import ABCMeta, abstractmethod
 from operator import attrgetter
 from random import randint
 import sys
-from typing import Any, Generic, Optional, TypeVar
+from typing import Generic, Optional, Tuple, TypeVar
 
 
-class _TreapNode:
-    key: Any
-    value: Any
-    priority: int
-    left: "Optional[_TreapNode]"
-    right: "Optional[_TreapNode]"
+class Comparable(metaclass=ABCMeta):
+    @abstractmethod
+    def __lt__(self, other: "K") -> bool:
+        pass
 
-    def __init__(self, key, value, priority):
+
+K = TypeVar("K", bound=Comparable)
+
+
+class _TreapNode(Generic[K]):
+    def __init__(self, key: K, value, priority: int):
         self.key = key
         self.value = value
         self.priority = priority
-        self.left = None
-        self.right = None
+        self.left: "Optional[_TreapNode[K]]" = None
+        self.right: "Optional[_TreapNode[K]]" = None
 
     def __iter__(self):
         if self.left is not None:
@@ -27,7 +31,7 @@ class _TreapNode:
             for node in self.right:
                 yield node
 
-    def find_child(self, key) -> "Optional[_TreapNode]":
+    def find_child(self, key: K) -> "Optional[_TreapNode[K]]":
         if key == self.key:
             return self
         if key > self.key:
@@ -39,51 +43,44 @@ class _TreapNode:
                 return None
             return self.left.find_child(key)
 
-    @staticmethod
-    def split(node: "Optional[_TreapNode]", key) -> tuple["Optional[_TreapNode]", "Optional[_TreapNode]"]:
-        if node is None:
-            return (None, None)
-        if key > node.key:
-            parts = _TreapNode.split(node.right, key)
-            node.right = parts[0]
-            return (node, parts[1])
-        elif key < node.key:
-            parts = _TreapNode.split(node.left, key)
-            node.left = parts[1]
-            return (parts[0], node)
+    def split(self, key: K) -> Tuple["Optional[_TreapNode[K]]", "Optional[_TreapNode[K]]", "Optional[_TreapNode[K]]"]:
+        if key > self.key:
+            parts = self.right.split(key) if self.right is not None else (None, None)
+            self.right = parts[0]
+            return (self, parts[1], None)
+        elif key < self.key:
+            parts = self.left.split(key) if self.left is not None else (None, None)
+            self.left = parts[1]
+            return (parts[0], self, None)
         else:
-            return (node.left, node.right)
+            return (self.left, self.right, self)
 
-    @staticmethod
-    def merge(a: "Optional[_TreapNode]", b: "Optional[_TreapNode]") -> "Optional[_TreapNode]":
-        if a is None:
-            return b
-        if b is None:
-            return a
+    def merge_with(self, other: "Optional[_TreapNode[K]]") -> "_TreapNode[K]":
+        if other is None:
+            return self
 
-        if a.priority > b.priority:
-            a.right = _TreapNode.merge(a.right, b)
-            return a
+        if self.priority > other.priority:
+            self.right = self.right.merge_with(other) if self.right is not None else other
+            return self
         else:
-            b.left = _TreapNode.merge(a, b.left)
-            return b
+            other.left = self.merge_with(other.left)
+            return other
 
 
-class _TreapTree:
-    _root: Optional[_TreapNode]
-
-    def __init__(self, *nodes: _TreapNode):
-        queue: list[_TreapNode | None] = sorted(nodes, key=attrgetter("key"))
+class _TreapTree(Generic[K]):
+    def __init__(self, *nodes: _TreapNode[K]):
+        queue: list[_TreapNode[K] | None] = sorted(nodes, key=attrgetter("key"))
 
         while len(queue) > 1:
-            new_queue = []
+            new_queue: list[_TreapNode[K] | None] = []
             if len(queue) % 2 != 0:
                 queue.append(None)
-            for pair in zip(queue[::2], queue[1::2]):
-                new_queue.append(_TreapNode.merge(*pair))
+            for left, right in zip(queue[::2], queue[1::2]):
+                if left is not None:
+                    new_queue.append(left.merge_with(right))
             queue = new_queue
 
-        self._root = queue[0] if len(queue) > 0 else None
+        self._root: Optional[_TreapNode[K]] = queue[0] if len(queue) > 0 else None
 
     def __iter__(self):
         if self._root is None:
@@ -93,30 +90,30 @@ class _TreapTree:
     def clear(self):
         self._root = None
 
-    def find_node(self, key) -> Optional[_TreapNode]:
+    def find_node(self, key: K) -> Optional[_TreapNode[K]]:
         if self._root is None:
             return None
         return self._root.find_child(key)
 
-    def insert(self, node: _TreapNode):
+    def insert(self, node: _TreapNode[K]):
         if self._root is not None:
-            parts = _TreapNode.split(self._root, node.key)
-            self._root = _TreapNode.merge(_TreapNode.merge(parts[0], node), parts[1])
+            left, right, _ = self._root.split(node.key)
+            if left is not None:
+                self._root = left.merge_with(node).merge_with(right)
+            else:
+                self._root = node.merge_with(right)
         else:
             self._root = node
 
-    def remove(self, key):
+    def remove(self, key: K):
         if self._root is None:
             return
-        parts = _TreapNode.split(self._root, key)
-        self._root = _TreapNode.merge(*parts)
+        left, right, _ = self._root.split(key)
+        self._root = left.merge_with(right) if left is not None else right
 
 
 def _random_int():
     return randint(0, sys.maxsize)
-
-
-K = TypeVar("K")
 
 
 class Treap(Generic[K]):
@@ -127,16 +124,13 @@ class Treap(Generic[K]):
     to use integer values as they are the fastest to compare.
     """
 
-    _size: int
-    _tree: _TreapTree
-
     def __init__(self, from_dict: dict | None = None, /):
-        "Create a treap and fill it with values from the optional `dict` dictionary."
-        self._size = 0
+        """Create a treap and fill it with values from the optional `dict` dictionary."""
+        self._size: int = 0
         if from_dict is not None:
             self._size = len(from_dict)
             nodes = (_TreapNode(key, value, _random_int()) for key, value in from_dict.items())
-            self._tree = _TreapTree(*nodes)
+            self._tree: _TreapTree[K] = _TreapTree(*nodes)
         else:
             self._tree = _TreapTree()
 
