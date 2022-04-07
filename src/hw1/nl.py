@@ -7,8 +7,13 @@ def main():
     args = parser.parse_args()
 
     with open(args.file) as f:
-        for i, line in enumerate(f):
-            print(f"{i + 1} {line}", end="")
+        i = 0
+        for line in f:
+            c = ""
+            if line != "\n":
+                i += 1
+                c = str(i)
+            print(f"{c.rjust(6)}\t{line}", end="")
 
 
 if __name__ == "__main__":
