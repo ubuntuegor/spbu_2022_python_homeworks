@@ -47,15 +47,18 @@ class _TreapNode(Generic[K]):
     def split(self, key: K) -> tuple["Optional[_TreapNode[K]]", "Optional[_TreapNode[K]]", "Optional[_TreapNode[K]]"]:
         """Splits the tree and returns 3 subtrees: less than `key`, greater than `key`, equal to `key`"""
         if key > self.key:
-            parts = self.right.split(key) if self.right is not None else (None, None)
+            parts = self.right.split(key) if self.right is not None else (None, None, None)
             self.right = parts[0]
-            return (self, parts[1], None)
+            return (self, parts[1], parts[2])
         elif key < self.key:
-            parts = self.left.split(key) if self.left is not None else (None, None)
+            parts = self.left.split(key) if self.left is not None else (None, None, None)
             self.left = parts[1]
-            return (parts[0], self, None)
+            return (parts[0], self, parts[2])
         else:
-            return (self.left, self.right, self)
+            left = self.left
+            right = self.right
+            self.left = self.right = None
+            return (left, right, self)
 
     def merge_with(self, other: "Optional[_TreapNode[K]]") -> "_TreapNode[K]":
         """Makes a new tree out of `self` and `other`. Each key in `self` must be smaller than any key in `other`"""
