@@ -7,8 +7,8 @@ from src.hw1.tail import main
 
 
 def test_tail(tmp_path: pathlib.Path, capsys: pytest.CaptureFixture):
-    test_content = "a\nb\nc\nd\ne\nf\ng\nh\ni\n"
-    result_content = "g\nh\ni\n"
+    test_content = " a\n b\n c\n d\n e\n f\n g\n h\n i\n"
+    result_content = " g\n h\n i\n"
     test_file = tmp_path / "file.txt"
     test_file.write_text(test_content)
     test_args = ["tail.py", "-n", "3", str(test_file)]
