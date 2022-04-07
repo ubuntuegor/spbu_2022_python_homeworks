@@ -1,18 +1,20 @@
 from math import sqrt, acos
-from typing import Iterable
+from collections.abc import Sequence
+
+Vector = Sequence[int]
 
 
-def vector_sum(*vectors: Iterable[int]) -> list[int]:
+def vector_sum(*vectors: Vector) -> Vector:
     return [sum(n) for n in zip(*vectors)]
 
 
-def multiply(vec1: Iterable[int], vec2: Iterable[int]) -> int:
+def multiply(vec1: Vector, vec2: Vector) -> int:
     return sum(i[0] * i[1] for i in zip(vec1, vec2))
 
 
-def length(vec: Iterable[int]) -> float:
+def length(vec: Vector) -> float:
     return sqrt(sum([i**2 for i in vec]))
 
 
-def angle(vec1: Iterable[int], vec2: Iterable[int]) -> float:
+def angle(vec1: Vector, vec2: Vector) -> float:
     return acos(multiply(vec1, vec2) / (length(vec1) * length(vec2)))
