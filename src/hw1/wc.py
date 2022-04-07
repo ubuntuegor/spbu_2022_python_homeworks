@@ -22,7 +22,7 @@ def main():
     args = parser.parse_args()
     print_all = not args.newlines and not args.words and not args.bytes
 
-    with open(args.file, "r") as f:
+    with open(args.file) as f:
         data = f.read()
         if print_all or args.newlines:
             print(count_newlines(data), end=" ")
