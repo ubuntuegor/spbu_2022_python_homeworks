@@ -1,5 +1,6 @@
 import sys
 from abc import ABCMeta, abstractmethod
+from collections.abc import MutableMapping, Mapping
 from itertools import zip_longest
 from operator import attrgetter
 from random import randint
@@ -77,7 +78,7 @@ def _random_int():
     return randint(0, sys.maxsize)
 
 
-class Treap(Generic[K]):
+class Treap(MutableMapping, Generic[K]):
     """
     Stores key-value pairs in a treap with randomized priority.
 
@@ -85,7 +86,7 @@ class Treap(Generic[K]):
     to use integer values as they are the fastest to compare.
     """
 
-    def __init__(self, from_dict: Optional[dict[K, Any]] = None, /):
+    def __init__(self, from_dict: Optional[Mapping[K, Any]] = None, /):
         """Create a treap and fill it with values from the optional `dict` dictionary."""
         self._size: int = 0
         self._root: Optional[_TreapNode] = None
@@ -111,10 +112,6 @@ class Treap(Generic[K]):
         self._size = 0
         self._root = None
 
-    def get(self, key: K):
-        node = self._find_node(key)
-        return node.value if (node is not None) else None
-
     def __iter__(self):
         if self._root is not None:
             for node in self._root:
@@ -128,10 +125,6 @@ class Treap(Generic[K]):
 
     def __len__(self):
         return self._size
-
-    def __contains__(self, key: K):
-        node = self._find_node(key)
-        return node is not None
 
     def __getitem__(self, key: K):
         node = self._find_node(key)

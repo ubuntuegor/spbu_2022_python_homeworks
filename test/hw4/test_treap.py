@@ -52,3 +52,17 @@ def test_treap_works_after_clear():
     t[1] = "a"
     assert 1 in t
     assert t[1] == "a"
+
+
+def test_treap_as_mutablemapping():
+    t = Treap()
+    t[10] = "c"
+    t[1] = "a"
+    t[7] = "b"
+    assert list(t.keys()) == [1, 7, 10]
+    assert list(t.values()) == ["a", "b", "c"]
+    b = Treap(t)
+    assert b == t
+    assert b.pop(7) == "b"
+    assert len(b) == 2
+    assert b != t
