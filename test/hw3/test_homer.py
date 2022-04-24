@@ -31,7 +31,7 @@ def test_download_random_homer():
     homer_filename = "2baa5f6f-20b1-45a8-8dbd-bb651c6e3ec1.jpg"
 
     with patch("src.hw3.homer.download_file") as download_mock, patch("src.hw3.homer.urlopen") as urlopen_mock:
-        urlopen_mock.return_value.read.return_value = homer_page
+        urlopen_mock.return_value.read.side_effect = [homer_page, b""]
         result_filename = download_random_homer()
 
         assert result_filename == homer_filename
