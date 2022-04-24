@@ -11,8 +11,8 @@ URL = "https://www.thisfuckeduphomerdoesnotexist.com/"
 executor = ThreadPoolExecutor(4)
 
 
-def get_image_url_from_site_source(html: str) -> str:
-    soup = BeautifulSoup(html, "html.parser")
+def get_image_url_from_site_source(page: bytes) -> str:
+    soup = BeautifulSoup(page, "html.parser")
     img = soup.find("img", id="image-payload")
     return img["src"]
 
@@ -23,10 +23,10 @@ def download_file(url: str, filename: str):
 
 
 def download_random_homer() -> str:
-    "Downloads random Homer pic into the work directory and returns its filename"
+    "Download a random Homer pic into the work directory and return its filename"
 
-    html = urlopen(URL).read().decode("utf-8")
-    image_url = get_image_url_from_site_source(html)
+    page = urlopen(URL).read()
+    image_url = get_image_url_from_site_source(page)
     filename = image_url.split("/")[-1]
     print(f"Downloading {filename}")
     download_file(image_url, filename)
