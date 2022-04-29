@@ -1,14 +1,15 @@
 from multiprocessing import Process, Array
 from array import array
+from collections.abc import MutableSequence
 
 
-def _swap_el(arr: Array, i: int, j: int):
+def _swap_el(arr: MutableSequence, i: int, j: int):
     tmp = arr[i]
     arr[i] = arr[j]
     arr[j] = tmp
 
 
-def _partition(arr: Array, start: int, end: int) -> int:
+def _partition(arr: MutableSequence, start: int, end: int) -> int:
     pivot = arr[end - 1]
     j = start - 1
 
@@ -22,7 +23,7 @@ def _partition(arr: Array, start: int, end: int) -> int:
     return j
 
 
-def _quick_sort_rec(arr: Array, start: int, end: int, depth: int):
+def _quick_sort_rec(arr: MutableSequence, start: int, end: int, depth: int):
     if end - start <= 1:
         return
 
