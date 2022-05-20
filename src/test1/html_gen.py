@@ -108,6 +108,7 @@ def _tag_with_content_decorator(tag: str) -> Callable:
             if content is not None:
                 node.add_child(_HTMLTextNode(content))
                 self.node.add_child(node)
+                return None
             else:
                 return _HTMLTag(self, node)
 
