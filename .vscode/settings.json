@@ -1,8 +1,8 @@
 {
   "python.formatting.provider": "black",
-  "python.formatting.blackArgs": [
-    "-l",
-    "120"
-  ],
-  "editor.formatOnSave": true
+  "python.formatting.blackArgs": ["-l", "120"],
+  "editor.formatOnSave": true,
+  "files.exclude": {
+    "**/__pycache__": true
+  }
 }
