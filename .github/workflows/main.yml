@@ -21,6 +21,8 @@ jobs:
         run: |
           black . --check -l 120
       - name: Test with unittest
+        env:
+          OPENWEATHERMAP_KEY: ${{ secrets.OPENWEATHERMAP_KEY }}
         run: |
           pytest test
       - name: Check types with mypy
