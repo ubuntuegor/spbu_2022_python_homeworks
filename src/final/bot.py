@@ -4,7 +4,7 @@ import os
 from telegram import Update
 from telegram.ext import CallbackContext, CommandHandler, MessageHandler, Filters, Updater
 
-from .answer_generator import AnswerGenerator
+from answer_generator import AnswerGenerator
 
 STRINGS = {"hello": "Давай поболтаем."}
 REMEMBER_HISTORY = 3
