@@ -19,4 +19,4 @@ class AnswerGenerator:
                 repetition_penalty=2.5,
                 max_length=64,
             )
-        return next(hypotheses)
+        return self._tokenizer.decode(hypotheses[0], skip_special_tokens=True)
