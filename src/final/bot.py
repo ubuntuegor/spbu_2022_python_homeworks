@@ -11,10 +11,17 @@ REMEMBER_HISTORY = 3
 
 
 def start(update: Update, context: CallbackContext):
+    if not update.effective_chat:
+        raise RuntimeError("Wrong update passed to start handler")
     context.bot.send_message(chat_id=update.effective_chat.id, text=STRINGS["hello"])
 
 
 def answer(gen: AnswerGenerator, update: Update, context: CallbackContext):
+    if not update.message or not update.message.text or not update.effective_chat:
+        raise RuntimeError("Wrong update passed to answer handler")
+    if not isinstance(context.chat_data, dict):
+        raise RuntimeError("chat_data unavailable")
+
     if "HISTORY" not in context.chat_data:
         context.chat_data["HISTORY"] = []
     history: list[str] = context.chat_data["HISTORY"]
