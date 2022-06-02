@@ -36,6 +36,7 @@ def main():
     updater = Updater(TOKEN)
     dp = updater.dispatcher
     logging.basicConfig(format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO)
+    logger = logging.getLogger(__name__)
 
     gen = AnswerGenerator()
 
@@ -43,6 +44,7 @@ def main():
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, partial(answer, gen)))
 
     updater.start_webhook(listen="0.0.0.0", port=PORT, url_path=TOKEN, webhook_url=f"https://{HOSTNAME}/{TOKEN}")
+    logger.info("Bot successfully started")
     updater.idle()
 
 
