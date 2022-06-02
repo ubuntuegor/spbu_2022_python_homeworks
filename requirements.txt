@@ -2,3 +2,7 @@ black>=22.3.0
 mypy>=0.942
 pytest>=7.1.1
 beautifulsoup4==4.10.0
+https://download.pytorch.org/whl/cpu/torch-1.11.0%2Bcpu-cp310-cp310-linux_x86_64.whl
+transformers==4.19.2
+sentencepiece==0.1.96
+python-telegram-bot==13.12
